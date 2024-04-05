@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fluid Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        #fluidCanvas {
+            border: 2px solid #005A9C;
+            margin-top: 20px;
+        }
+
+        .control-panel {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            /* Adjusts space between controls */
+        }
+
+        .control-panel h2 {
+            font-size: 18px;
+            /* Smaller title */
+            color: #005A9C;
+            flex-basis: 100%;
+            /* Ensures the title takes full width */
+            margin: 8px 0;
+        }
+
+        input,
+        select,
+        button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: auto;
+            /* Adjust width or set to auto for smaller controls */
+            box-sizing: border-box;
+            font-size: 14px;
+            /* Smaller font size for text in controls */
+        }
+
+        button {
+            background-color: #005A9C;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #003d73;
+        }
+
+        /* You might need this if controls are too squeezed */
+        @media (max-width: 600px) {
+            .control-panel {
+                flex-direction: column;
+            }
+        }
+
+        .stats-panel {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <form id="simulationSettings">
+        Grid Size: <input type="number" id="size" value="64"><br>
+        Diffusion: <input type="number" id="diffusion" step="any" value="10"><br>
+        Viscosity: <input type="number" id="viscosity" step="any" value="0.001"><br>
+        Time Step: <input type="number" id="dt" step="any" value=".001"><br>
+        Particle Count: <input type="number" id="particleCount" value="5000"><br>
+        <button type="button" onclick="startSimulation()">Reset Simulation</button>
+        <button type="button" id="reinitializeParticles">Reinitialize Particles</button>
+        <select id="visualizationMode">
+            <option value="dye">Dye Concentration</option>
+            <option value="velocity">Velocity Field</option>
+            <option value="pressure">Pressure Field</option>
+            <option value="flowLines">Flow Field Lines</option>
+            <option value="particles">Particles</option>
+            <option value="particlesAndPressure">Particles and Pressure</option>
+            <option value="particlesAndPressureAndVelocity" selected>Particles, Pressure, and Velocity</option>
+            <option value="particlesAndVelocity">Particles and Velocity</option>
+
+            <option value="combined">Combined (Dye + Velocity)</option>
+        </select>
+
+    </form>
+
+
+    <canvas id="fluidCanvas"></canvas>
+    <script src="game.js"></script>
+    <script>
+        let game;
+
+
+        function startSimulation ()
+        {
+            const size = document.getElementById( "size" ).value;
+            const diffusion = document.getElementById( "diffusion" ).value;
+            const viscosity = document.getElementById( "viscosity" ).value;
+            const dt = document.getElementById( "dt" ).value;
+            const particleCount = parseInt( document.getElementById( 'particleCount' ).value, 10 );
+
+            if ( game )
+            {
+                // Clear previous simulation if exists
+                game.stop();
+            }
+
+            game = new FluidGame( +size, +diffusion, +viscosity, +dt, particleCount );
+            game.visualizationMode = document.getElementById( "visualizationMode" ).value;
+
+            game.start();
+
+        }
+        document.getElementById( 'reinitializeParticles' ).addEventListener( 'click', function ()
+        {
+            if ( game )
+            {
+                const newParticleCount = parseInt( document.getElementById( 'particleCount' ).value, 10 );
+                game.particleCount = newParticleCount; // Update the particle count in the game object
+                game.reinitializeParticles();
+                game.render();
+            }
+        } );
+
+
+        document.getElementById( "visualizationMode" ).addEventListener( "change", function ()
+        {
+            if ( game )
+            {
+                game.visualizationMode = this.value;
+            }
+
+
+
+        } );
+
+
+
+        startSimulation(); // Start with default values
+    </script>
+    <div id="statsPanel" class="stats-panel">
+        <div>Average Pressure: <span id="avgPressure">0</span></div>
+        <div>Average Velocity: <span id="avgVelocity">0</span></div>
+
+    </div>
+
+</body>
+
+</html>
